@@ -1,0 +1,53 @@
+name: Quality validation
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test-only-local
+          POSTGRES_DB: survey_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U test -d survey_test"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+      - name: Isolated test configuration
+        run: |
+          node --input-type=module - <<'JS'
+          import {randomBytes} from 'node:crypto';
+          import {writeFileSync} from 'node:fs';
+          writeFileSync('backend/.env',[
+            'DATABASE_URL=postgres://test:test-only-local@127.0.0.1:5432/survey_test',
+            `ADMIN_PASSWORD=${randomBytes(24).toString('hex')}`,
+            `USER1_PASSWORD=${randomBytes(24).toString('hex')}`,
+            `SURVEY_ENCRYPTION_KEY=${randomBytes(32).toString('base64')}`,
+            'SURVEY_ALLOW_HTTP=false'
+          ].join('\n'));
+          JS
+      - run: npm ci && npm run build && npm test
+        working-directory: backend
+      - run: npm ci && npm run build && npm test
+        working-directory: frontend
+      - name: Synchronization and acceptance tests
+        run: |
+          (cd backend && npm start > /tmp/backend.log 2>&1) &
+          QUALITY_FIXTURES=1 node tests/mock-survey.cjs > /tmp/mock.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:3001/health; then break; fi
+            sleep 1
+          done
+          BASE_URL=http://127.0.0.1:3001 node tests/intelligence-integration.mjs
