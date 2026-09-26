@@ -1,0 +1,16 @@
+export type Role = 'admin' | 'user';
+export type User = { id:string; username:string; role:Role; active?:boolean; created_at?:string };
+export type Status = 'CONFORME' | 'NON CONFORME' | 'NON CONTRÔLÉ';
+export type Metric = { questionnaires:number; questions:number; analyzed:number; compliant:number; with_errors:number; controls:number; passed:number; failed:number; unchecked:number };
+export type Dashboard = { metrics:Metric;trend:{date:string;errors:number;passed:number}[];byType:{error_type:string;count:number}[];recent:Result[] };
+export type Questionnaire = { id:string;external_id:string;title:string;variable:string;workspace:string;status:string;last_synced_at:string;version:number;questions_count:number;responses_count:number;versions_count:number };
+export type Version = { id:string;version:number;identity:string;last_synced_at:string;questions_count:number;responses_count:number };
+export type Section = { id:string;external_id:string;parent_id:string|null;title:string;variable_name:string;version_id:string;position:number;is_roster:boolean;enabling_condition:string|null };
+export type QuestionnaireDetails = Questionnaire & {versions:Version[];sections:Section[]};
+export type Question = {id:string;version_id:string;section_id:string|null;external_id:string;variable_name:string;label:string;type:string;options:{value:string;text:string}[];constraints:{Expression?:string;Message?:string}[];min_value:string|null;max_value:string|null;enabling_condition:string|null;is_roster:boolean;position:number;section_title:string|null;parent_section_id:string|null;version:number;questionnaire_id:string;questionnaire_title:string;rules_count:number};
+export type RuleType = 'min'|'max'|'range'|'equals'|'not_equals'|'allowed'|'required'|'format'|'min_length'|'max_length'|'compare'|'consistency'|'duplicate';
+export type Rule = {id:string;question_id:string;type:RuleType;params:Record<string,unknown>;active:boolean;created_at:string;updated_at:string;variable_name:string;question_label:string;section_id:string;version_id:string;questionnaire_id:string;questionnaire_title:string;version:number};
+export type Result = {occurrence:number;severity:string;context:Record<string,string>;related:string[];quality_score:number|null;quality_class:string;id:string;status:Status;error_type:string|null;details:string;value:unknown;instance_key:string;checked_at:string;question_id:string;variable_name:string;question_label:string;questionnaire_id:string;questionnaire_title:string;interview_id:string;interviewer:string|null;supervisor:string|null;last_modified_at:string|null};
+export type Report = {items:Result[];total:number;summary:{total:number;passed:number;failed:number;unchecked:number};page:number;pageSize:number};
+export type Connection = {url:string;workspace:string;allowInsecureHttp:boolean;hasCredentials:boolean;status:string;serverVersion:string|null;lastTestedAt:string|null;lastSyncedAt:string|null};
+export type Activity = {id:string;username:string;action:string;target:string|null;ip_address:string|null;created_at:string};
