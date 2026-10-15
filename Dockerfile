@@ -40,12 +40,19 @@ ENV JOBS=2 \
 
 COPY package.json package-lock.json ./
 COPY prisma ./prisma
+# CORRECTIF « exit code: 1 » : le postinstall exécute `node scripts/prisma-generate.mjs`
+# → scripts/ DOIT être présent AVANT npm ci (sinon MODULE_NOT_FOUND en fin d'install).
+COPY scripts ./scripts
 # postinstall lance prisma generate.
 # --mount=type=cache : le cache npm survit d'un build à l'autre → après une interruption,
 #   la reprise ne retélécharge pas les ~550 paquets (fenêtre de risque réduite à ~2 min).
 # --foreground-scripts + loglevel notice : journaux en direct au lieu de 26 min de silence.
+# En cas d'échec, les 120 dernières lignes du journal npm (inaccessible depuis l'hôte,
+# car dans le cache mount) sont affichées, puis l'échec est PROPAGÉ (exit 1 conservé).
 RUN --mount=type=cache,target=/root/.npm \
-    npm ci --foreground-scripts --loglevel=notice
+    npm ci --foreground-scripts --loglevel=notice \
+    || { echo '────── Journal npm (dernier échec) ──────'; \
+         tail -n 120 "$(ls -t /root/.npm/_logs/*.log | head -1)"; exit 1; }
 
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
