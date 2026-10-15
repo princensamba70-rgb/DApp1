@@ -189,7 +189,8 @@ export default function Console({
       sessionStorage.removeItem(key);
       try {
         const { content, mode: m } = JSON.parse(raw);
-        void send(content, m === "kingly" ? "kingly" : "agent");
+        // Report en microtâche : évite un setState synchrone dans l'effet.
+        queueMicrotask(() => void send(content, m === "kingly" ? "kingly" : "agent"));
       } catch {}
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

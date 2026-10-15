@@ -22,12 +22,17 @@ Le conteneur initialise la base, crée le compte administrateur et démarre le s
 
 ### Démarrage local (sans Docker)
 
+> Prérequis : **Node.js ≥ 22.9** (le projet utilise `--env-file-if-exists` et `node:sqlite` n'est pas requis).
+
 ```bash
-cp .env.example .env # variables locales (AUTH_SECRET, admin, OAuth…)
-npm install          # installe + prisma generate (postinstall)
-npm run setup        # client Prisma + schéma SQLite + seed admin
+npm install          # installe + prisma generate (postinstall, portable Win/Linux/mac)
+npm run setup        # valide le .env + schéma SQLite + seed admin
 npm run dev          # http://localhost:3000
 ```
+
+Un **`.env` de développement est fourni** (valeurs non sensibles) et `.env.example`
+documente chaque variable. Les vrais secrets vont dans `.env.local` (ignoré par Git).
+`npm run check:env` valide les variables obligatoires à tout moment.
 
 > Production locale : `npm run build && npm start`
 

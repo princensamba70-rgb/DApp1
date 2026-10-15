@@ -1,6 +1,9 @@
 #!/bin/sh
 set -e
 
+echo "[cortexp] validation des variables d'environnement…"
+node scripts/check-env.mjs
+
 echo "[cortexp] initialisation du schéma SQLite…"
 node scripts/init-db.mjs
 

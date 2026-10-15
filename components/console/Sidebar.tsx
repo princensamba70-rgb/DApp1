@@ -22,7 +22,9 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load, pathname]);
+  // Chargement des sessions : le setState a lieu après le fetch (asynchrone).
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { void load(); }, [load, pathname]);
   useEffect(() => {
     const h = () => load();
     window.addEventListener("cortexp:sessions-changed", h);

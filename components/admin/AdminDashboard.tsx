@@ -36,7 +36,9 @@ export default function AdminDashboard({ adminId }: { adminId: string }) {
     }
   }, []);
 
-  useEffect(() => { reload(); }, [reload]);
+  // Chargement initial : le setState a lieu après le fetch (asynchrone).
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { void reload(); }, [reload]);
 
   const cards = stats
     ? [
