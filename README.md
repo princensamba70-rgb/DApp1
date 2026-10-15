@@ -164,6 +164,12 @@ node-gyp compile **100 % hors-ligne**, de façon déterministe (aucun téléchar
 nodejs.org/GitHub pendant le build). Un garde-fou `RUN test -f …/node_api.h`
 échoue explicitement si l'image de base ne fournissait plus les headers.
 
+> ℹ️ Pendant `npm ci`, le message
+> `npm warn deprecated prebuild-install@7.1.3: No longer maintained…`
+> est un simple **avertissement de dépréciation, non fatal** (dépendance interne
+> de better-sqlite3). Il n'interrompt pas le build : `npm ci` se termine avec
+> le code 0 et la compilation continue jusqu'à `npm run build`.
+
 ### Basculer sur PostgreSQL
 
 Changez `provider = "postgresql"` dans `prisma/schema.prisma`, remplacez
