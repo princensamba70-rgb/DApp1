@@ -144,6 +144,26 @@ prod), `ADMIN_USERNAME` / `ADMIN_PASSWORD`, clés OAuth, `DEMO_MODE`,
 - Rate limiting inscription (5 / 10 min / IP) ; garde-fous admin (impossible de
   se rétrograder / supprimer soi-même) ; journal d'audit sans secrets.
 
+### 🔧 Dépannage : `gyp ERR! not ok` sur better-sqlite3 pendant `docker compose build`
+
+Cause racine (observée dans les journaux `npm ci`) :
+1. `prebuild-install` ne peut pas télécharger le binaire précompilé
+   (*« unable to verify the first certificate »* — proxy / réseau filtrant) ;
+2. repli sur `node-gyp rebuild`, qui tente alors de télécharger les **headers
+   Node depuis nodejs.org** → `ECONNRESET` → `gyp ERR! configure error / not ok`.
+
+Correctif intégré au `Dockerfile` (étape builder) :
+
+```dockerfile
+ENV npm_config_nodedir=/usr/local \
+    npm_config_build_from_source=true
+```
+
+L'image officielle `node` embarque déjà les headers dans `/usr/local/include/node` :
+node-gyp compile **100 % hors-ligne**, de façon déterministe (aucun téléchargement
+nodejs.org/GitHub pendant le build). Un garde-fou `RUN test -f …/node_api.h`
+échoue explicitement si l'image de base ne fournissait plus les headers.
+
 ### Basculer sur PostgreSQL
 
 Changez `provider = "postgresql"` dans `prisma/schema.prisma`, remplacez

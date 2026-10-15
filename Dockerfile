@@ -12,6 +12,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV PRISMA_SCHEMA_ENGINE_BINARY=/bin/true \
     PRISMA_QUERY_ENGINE_LIBRARY=/bin/true
 
+# ── Compilation native 100 % HORS-LIGNE (correctif better-sqlite3 / node-gyp) ──
+# Sans ces variables, `npm ci` dépend du réseau pendant le build :
+#   1. prebuild-install télécharge un binaire précompilé (GitHub) ;
+#   2. en cas d'échec, node-gyp télécharge les headers Node depuis nodejs.org
+#      → ECONNRESET / erreur TLS derrière un proxy ⇒ « gyp ERR! not ok ».
+# L'image officielle node embarque déjà les headers dans /usr/local/include/node :
+# on pointe node-gyp dessus et on force une compilation locale déterministe.
+ENV npm_config_nodedir=/usr/local \
+    npm_config_build_from_source=true
+# Garde-fou : échec immédiat et explicite si l'image de base ne fournit plus les headers.
+RUN test -f /usr/local/include/node/node_api.h \
+    || (echo "ERREUR : headers Node absents de l'image de base (npm_config_nodedir)" && exit 1)
+
 COPY package.json package-lock.json ./
 COPY prisma ./prisma
 # postinstall lance prisma generate
