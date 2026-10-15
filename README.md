@@ -170,6 +170,36 @@ nodejs.org/GitHub pendant le build). Un garde-fou `RUN test -f …/node_api.h`
 > de better-sqlite3). Il n'interrompt pas le build : `npm ci` se termine avec
 > le code 0 et la compilation continue jusqu'à `npm run build`.
 
+> ⚠️ La documentation ci-dessus mentionne `npm_config_build_from_source=true` ;
+> la valeur est désormais **limitée à `better-sqlite3`** (prebuild-install accepte
+> le nom du paquet) pour n'imposer la compilation source qu'au seul module natif
+> qui en a besoin.
+
+### 🔧 Dépannage : `npm ci … exit code: 146` (processus tué pendant le build)
+
+Un code de sortie **129–255** signifie que `npm ci` a été **interrompu par un
+signal externe** (code − 128), pas qu'il a échoué par lui-même : typiquement une
+VM Docker Desktop/WSL2 à court de mémoire ou un réseau très lent qui prolonge le
+build jusqu'à l'asphyxie (le même `npm ci` prend ~70 s sur une machine saine).
+
+Mesures intégrées au `Dockerfile` :
+- `JOBS=2` : limite le nombre de compilations C++ parallèles de node-gyp
+  (pic mémoire réduit) ;
+- `npm_config_fetch_retries=5` + timeouts étendus : résilience aux réseaux lents ;
+- `RUN --mount=type=cache,target=/root/.npm` : le cache npm **survit entre deux
+  builds** — après une interruption, relancer `docker compose up -d --build`
+  reprend sans retélécharger les ~550 paquets ;
+- `--foreground-scripts --loglevel=notice` : la compilation s'affiche en direct
+  (plus de longues minutes de silence).
+
+Côté machine, si le code 146 revient :
+1. **Relancez simplement le build** (le cache npm accélère la reprise).
+2. Vérifiez la mémoire allouée à Docker Desktop (Settings → Resources) ou à WSL2 :
+   fichier `%UserProfile%\.wslconfig`, section `[wsl2]`, `memory=4GB` minimum,
+   puis `wsl --shutdown` et relancez Docker Desktop.
+3. Vérifiez l'espace disque : `docker system df` (sans nettoyage destructif).
+4. Journaux détaillés : `docker compose build --progress=plain web`.
+
 ### Basculer sur PostgreSQL
 
 Changez `provider = "postgresql"` dans `prisma/schema.prisma`, remplacez

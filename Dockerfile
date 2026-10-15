@@ -19,16 +19,33 @@ ENV PRISMA_SCHEMA_ENGINE_BINARY=/bin/true \
 #      → ECONNRESET / erreur TLS derrière un proxy ⇒ « gyp ERR! not ok ».
 # L'image officielle node embarque déjà les headers dans /usr/local/include/node :
 # on pointe node-gyp dessus et on force une compilation locale déterministe.
+# build_from_source est LIMITÉ à better-sqlite3 (prebuild-install/rc.js accepte le nom
+# du paquet : `buildFromSource === pkg.name`) : les autres paquets à script d'install
+# (@prisma/*, unrs-resolver) ne déclenchent aucune compilation inutile.
 ENV npm_config_nodedir=/usr/local \
-    npm_config_build_from_source=true
+    npm_config_build_from_source=better-sqlite3
 # Garde-fou : échec immédiat et explicite si l'image de base ne fournit plus les headers.
 RUN test -f /usr/local/include/node/node_api.h \
     || (echo "ERREUR : headers Node absents de l'image de base (npm_config_nodedir)" && exit 1)
 
+# ── Durcissement contre l'« exit code: 146 » (npm ci tué par un signal externe) ──
+# JOBS=2 : node-gyp (lib/build.js : `gyp.opts.jobs || process.env.JOBS`) limite make à
+#   2 g++ parallèles → pic mémoire réduit sur les VM Docker Desktop/WSL2 étroites.
+# fetch_* : réseau lent/instable → plus de tentatives au lieu d'un blocage prolongé.
+ENV JOBS=2 \
+    npm_config_fetch_retries=5 \
+    npm_config_fetch_retry_mintimeout=20000 \
+    npm_config_fetch_retry_maxtimeout=120000 \
+    npm_config_fetch_timeout=600000
+
 COPY package.json package-lock.json ./
 COPY prisma ./prisma
-# postinstall lance prisma generate
-RUN npm ci
+# postinstall lance prisma generate.
+# --mount=type=cache : le cache npm survit d'un build à l'autre → après une interruption,
+#   la reprise ne retélécharge pas les ~550 paquets (fenêtre de risque réduite à ~2 min).
+# --foreground-scripts + loglevel notice : journaux en direct au lieu de 26 min de silence.
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --foreground-scripts --loglevel=notice
 
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
