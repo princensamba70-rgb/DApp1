@@ -81,16 +81,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           where: { id: token.uid as string },
           select: { role: true, isActive: true, username: true, defaultMode: true },
         });
-        token.role = db?.role ?? "USER";
-        token.active = db?.isActive ?? false;
-        token.username = db?.username ?? null;
-        token.defaultMode = db?.defaultMode ?? "agent";
+        // Anti-boucle de redirection : si le compte a été supprimé, le jeton
+        // devient orphelin. On invalide la session (uid = null) au lieu de
+        // laisser un identifiant fantôme provoquer des redirections croisées
+        // entre /login et /c.
+        if (!db) {
+          token.uid = null;
+          return token;
+        }
+        token.role = db.role;
+        token.active = db.isActive;
+        token.username = db.username;
+        token.defaultMode = db.defaultMode;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = (token.uid as string) ?? "";
+        session.user.id = token.uid ?? "";
         session.user.role = token.role as string | undefined;
         session.user.username = token.username as string | null | undefined;
         session.user.defaultMode = token.defaultMode as string | undefined;

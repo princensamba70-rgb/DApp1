@@ -2,12 +2,15 @@
 // (thème clair : fond blanc, texte noir, via la surcharge .theme-light).
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth, googleEnabled, githubEnabled } from "@/lib/auth";
+import { currentUser, googleEnabled, githubEnabled } from "@/lib/auth";
 import LoginForm from "@/components/auth/LoginForm";
 
 export default async function LoginPage() {
-  const session = await auth();
-  if (session?.user?.id) redirect("/c");
+  // currentUser() (et non auth()) : vérifie le compte en base. Un jeton
+  // orphelin (utilisateur supprimé) ne provoque plus de boucle de
+  // redirection entre /login et /c.
+  const user = await currentUser();
+  if (user) redirect("/c");
 
   return (
     <main
