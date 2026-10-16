@@ -150,9 +150,19 @@ CORTEXP fonctionne **sans aucune clé API** grâce à une couche d'abstraction
 (`lib/agent/provider.ts`). Le fournisseur se change par configuration, jamais
 par le code :
 
+Le moteur local **exécute réellement les travaux** (rien n'est simulé) :
+- **Code JavaScript** (bloc ` ```js `) — exécution en VM isolée `node:vm`
+  (timeout 2 s, sans accès système) : sortie console, valeurs, erreurs réelles ;
+- **CSV** — statistiques par colonne : n, min, max, moyenne, médiane, somme, écart-type ;
+- **JSON** — validation + formatage ; **calculs** arithmétiques validés ;
+- **Textes longs** — résumé extractif (scoring de fréquence) + mots-clés ;
+- **URLs fournies** — lecture, extraction du texte et citations ;
+- **KINGLY 1** — chaque résultat déterministe est **ré-exécuté indépendamment**
+  et comparé ; les écarts sont signalés (`verifier`).
+
 | `AI_PROVIDER` | Comportement | Données sortantes |
 |---|---|---|
-| `local` *(défaut)* | Moteur local déterministe intégré — zéro clé, zéro réseau | Aucune |
+| `local` *(défaut)* | Moteur local à **exécution réelle** (ci-dessus) — zéro clé, zéro réseau | Aucune |
 | `openai` | Tout endpoint **compatible OpenAI** : Ollama (`http://localhost:11434/v1`), LM Studio (`…:1234/v1`), vLLM, llama.cpp server | Aucune si le serveur est local |
 | `anthropic` | Strictement **opt-in** (`AI_PROVIDER=anthropic` + clé) — jamais requis | Oui (choix explicite) |
 

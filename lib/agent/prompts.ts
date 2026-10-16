@@ -44,7 +44,7 @@ export function systemPromptFor(mode: "agent" | "kingly"): string {
 export function modelFor(mode: "agent" | "kingly"): string {
   const provider = (process.env.AI_PROVIDER ?? "local").trim().toLowerCase();
   if (process.env.DEMO_MODE === "true" || provider === "local") {
-    return mode === "kingly" ? "cortexp-demo-kingly" : "cortexp-demo-agent";
+    return mode === "kingly" ? "cortexp-local-kingly" : "cortexp-local-agent";
   }
   if (provider === "openai" && process.env.OPENAI_BASE_URL) {
     return (
@@ -58,5 +58,5 @@ export function modelFor(mode: "agent" | "kingly"): string {
       ? process.env.ANTHROPIC_MODEL_KINGLY || "claude-sonnet-4-5"
       : process.env.ANTHROPIC_MODEL_AGENT || "claude-sonnet-4-5";
   }
-  return mode === "kingly" ? "cortexp-demo-kingly" : "cortexp-demo-agent";
+  return mode === "kingly" ? "cortexp-local-kingly" : "cortexp-local-agent";
 }

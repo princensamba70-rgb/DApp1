@@ -71,9 +71,9 @@ export function resolveProvider(): ProviderStatus {
 function localStatus(hint?: string): ProviderStatus {
   return {
     provider: "local",
-    label: "Moteur local CORTEXP",
+    label: "Moteur local CORTEXP — exécution réelle",
     model: "cortexp-local",
-    demo: true,
+    demo: false, // le moteur local EXÉCUTE réellement les tâches (VM, stats, web…)
     external: false,
     ready: true,
     hint,

@@ -6,37 +6,37 @@ import { auth } from "@/lib/auth";
 import { resolveProvider } from "@/lib/agent/provider";
 
 const EXAMPLES = [
-  "Corrige le build Docker de mon projet Node.js",
-  "Analyse ce dépôt et propose un plan de refactorisation",
-  "Rédige un rapport technique à partir de mes journaux d'erreurs",
-  "Audite la sécurité de mes routes API",
+  "Exécute ce script JavaScript et montre la sortie",
+  "Analyse ce CSV : min, max, moyenne, médiane",
+  "Résume ce rapport et extrais les mots-clés",
+  "Lis ces URLs et cite les sources",
 ];
 
 const FEATURES = [
   {
     icon: "⌘",
-    title: "Développement autonome",
-    text: "Explore un dépôt, planifie, modifie les fichiers, exécute les tests, lit ses erreurs et se corrige — avec journal d'exécution complet.",
+    title: "Exécution de code réelle",
+    text: "Vos scripts JavaScript sont exécutés dans une VM isolée (délai strict, sans accès système) : sortie console, valeurs et erreurs réelles.",
+  },
+  {
+    icon: "∑",
+    title: "Analyse de données",
+    text: "CSV : min, max, moyenne, médiane, somme, écart-type par colonne. JSON : validation et formatage. Calculs arithmétiques vérifiés.",
+  },
+  {
+    icon: "¶",
+    title: "Analyse documentaire",
+    text: "Résumé extractif par scoring de fréquence, mots-clés dominants, statistiques de lecture — calculés localement, sans aucun LLM requis.",
   },
   {
     icon: "⎇",
-    title: "Orchestration multi-agents",
-    text: "Mode KINGLY 1 : décomposition en sous-tâches, chercheur, architecte, exécutant et vérificateur indépendant qui conteste les résultats.",
-  },
-  {
-    icon: "≋",
-    title: "Streaming temps réel",
-    text: "Plan vivant, appels d'outils avec codes de sortie, raisonnement et réponse diffusés en continu (SSE), interruption propre à tout moment.",
-  },
-  {
-    icon: "⛁",
-    title: "Historique persistant",
-    text: "Sessions multiples : création, renommage, suppression, export Markdown. Chaque run est rejouable avec son plan et ses outils.",
+    title: "Vérification indépendante",
+    text: "Mode KINGLY 1 : chaque résultat déterministe est ré-exécuté par un vérificateur et comparé octet par octet — les écarts sont signalés.",
   },
   {
     icon: "⚿",
     title: "Confidentialité par défaut",
-    text: "Moteur local par défaut : aucune clé requise, aucune donnée envoyée à un tiers. Fournisseur interchangeable par simple configuration.",
+    text: "Moteur local : aucune clé requise, aucune donnée envoyée à un tiers. Fournisseur interchangeable (Ollama, LM Studio…) par configuration.",
   },
   {
     icon: "♔",
@@ -81,13 +81,17 @@ export default async function LandingPage() {
       <main className="flex-1">
         {/* 4. Section principale */}
         <section className="mx-auto max-w-3xl px-6 pt-20 pb-12 text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight leading-tight">
+          <p className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs font-medium text-neutral-600">
+            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-ok" />
+            100 % local — exécution réelle, zéro clé API requise
+          </p>
+          <h1 className="mt-6 text-4xl sm:text-5xl font-bold tracking-tight leading-tight">
             Un agent IA qui exécute
             <br className="hidden sm:block" /> vos tâches de bout en bout
           </h1>
           <p className="mt-5 text-lg text-neutral-600 max-w-xl mx-auto">
-            Développement logiciel, analyse de code, rapports techniques :
-            CORTEXP planifie, agit, vérifie et livre — en toute autonomie.
+            Exécution de code, analyse de données et de documents, recherche
+            citée : CORTEXP planifie, agit, vérifie et livre — en toute autonomie.
           </p>
 
           {/* 5. Champ de saisie central (redirige vers la connexion) */}
