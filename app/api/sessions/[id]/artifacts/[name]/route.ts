@@ -17,10 +17,12 @@ const MIME: Record<string, string> = {
   ".txt": "text/plain; charset=utf-8",
 };
 
-export async function GET(_req: Request, ctx: Ctx) {
+export async function GET(req: Request, ctx: Ctx) {
   const user = await currentUser();
   if (!user) return new Response("Non authentifié", { status: 401 });
   const { id, name } = await ctx.params;
+  // ?inline=1 : affichage dans l'aperçu du workspace (iframe) au lieu du téléchargement
+  const inline = new URL(req.url).searchParams.get("inline") === "1";
 
   const session = await prisma.chatSession.findFirst({ where: { id, userId: user.id } });
   if (!session) return new Response("Introuvable", { status: 404 });
@@ -30,10 +32,11 @@ export async function GET(_req: Request, ctx: Ctx) {
   if (!fs.existsSync(file) || !fs.statSync(file).isFile()) return new Response("Fichier introuvable", { status: 404 });
 
   const ext = path.extname(name).toLowerCase();
+  const disposition = inline && MIME[ext] ? "inline" : `attachment; filename="${name}"`;
   return new Response(fs.readFileSync(file), {
     headers: {
       "content-type": MIME[ext] ?? "application/octet-stream",
-      "content-disposition": `attachment; filename="${name}"`,
+      "content-disposition": disposition,
     },
   });
 }

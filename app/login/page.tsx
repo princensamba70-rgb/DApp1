@@ -10,7 +10,12 @@ export default async function LoginPage() {
   if (session?.user?.id) redirect("/c");
 
   return (
-    <main className="theme-light flex-1 flex flex-col bg-white text-[#111111]">
+    <main
+      className="theme-light flex-1 flex flex-col bg-white text-[#111111]"
+      style={{ backgroundColor: "#ffffff", color: "#111111" }}
+    >
+      {/* Garantie absolue de fond blanc sur cette page (quel que soit le thème/cache) */}
+      <style>{`html, body { background: #ffffff !important; }`}</style>
       <header className="border-b border-neutral-200">
         <div className="mx-auto max-w-6xl px-6 h-16 flex items-center">
           <Link href="/" className="font-mono text-lg font-bold tracking-tight">

@@ -520,8 +520,12 @@ export function generateProject(brief: string, ctx: TaskCtx): SkillOutcome {
   };
 }
 
-function websiteTemplate(title: string, brief: string): Record<string, string> {
-  const desc = brief.replace(/\s+/g, " ").trim().slice(0, 140);
+const escapeHtml = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+function websiteTemplate(rawTitle: string, brief: string): Record<string, string> {
+  const title = escapeHtml(rawTitle);
+  const desc = escapeHtml(brief.replace(/\s+/g, " ").trim().slice(0, 140));
   return {
     "index.html": `<!DOCTYPE html>
 <html lang="fr">

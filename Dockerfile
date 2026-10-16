@@ -66,7 +66,8 @@ ENV NODE_ENV=production \
     PORT=3000 \
     HOSTNAME=0.0.0.0
 
-RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates \
+# git : requis par le terminal confiné de l'espace de travail (git init/commit…)
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates git \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd -r cortexp && useradd -r -g cortexp cortexp
 

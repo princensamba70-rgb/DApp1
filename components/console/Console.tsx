@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { AgentEvent, RunMeta } from "@/lib/agent/types";
 import AssistantRun, { type RunView } from "./AssistantRun";
 import Composer from "./Composer";
+import WorkspacePanel from "./WorkspacePanel";
 
 type StoredMessage = { id: string; role: string; content: string; meta?: string | null };
 type Entry =
@@ -197,7 +198,8 @@ export default function Console({
   }, [sessionId]);
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
+    <div className="flex-1 flex min-h-0">
+      <div className="flex-1 flex flex-col min-h-0">
       <div className="flex-1 overflow-y-auto px-4 lg:px-8 py-6">
         <div className="max-w-3xl mx-auto space-y-6">
           {entries.length === 0 && (
@@ -242,6 +244,9 @@ export default function Console({
         <span>{status.cost.toFixed(4)} $</span>
         <span className="ml-auto hidden sm:block">⌘⏎ envoyer · mode {mode}</span>
       </div>
+      </div>
+
+      <WorkspacePanel sessionId={sessionId} />
     </div>
   );
 }

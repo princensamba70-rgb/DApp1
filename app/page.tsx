@@ -51,7 +51,12 @@ export default async function LandingPage() {
   const engine = resolveProvider();
 
   return (
-    <div className="theme-light flex-1 flex flex-col bg-white text-[#111111] font-sans">
+    <div
+      className="theme-light flex-1 flex flex-col bg-white text-[#111111] font-sans"
+      style={{ backgroundColor: "#ffffff", color: "#111111" }}
+    >
+      {/* Garantie absolue de fond blanc sur cette page (quel que soit le thème/cache) */}
+      <style>{`html, body { background: #ffffff !important; }`}</style>
       {/* 1-3. Barre de navigation : logo + connexion / inscription */}
       <header className="border-b border-neutral-200">
         <nav
