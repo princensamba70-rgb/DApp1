@@ -22,8 +22,16 @@ services:
       # Mode 3 — GitHub OAuth (renseigner pour activer le bouton)
       GITHUB_CLIENT_ID: ""
       GITHUB_CLIENT_SECRET: ""
-      # Agent : démo complète sans clé ; mettre DEMO_MODE=false + une clé pour le réel
+      # ── Moteur IA (indépendant d'Anthropic) ──
+      # AI_PROVIDER=local (défaut) : moteur intégré, zéro clé, zéro appel externe.
+      # AI_PROVIDER=openai + DEMO_MODE=false : modèle local compatible OpenAI
+      #   (Ollama sur l'hôte : OPENAI_BASE_URL=http://host.docker.internal:11434/v1)
+      # AI_PROVIDER=anthropic : strictement optionnel, jamais requis.
       DEMO_MODE: "true"
+      AI_PROVIDER: "local"
+      OPENAI_BASE_URL: ""
+      OPENAI_API_KEY: ""
+      OPENAI_MODEL: ""
       ANTHROPIC_API_KEY: ""
       ANTHROPIC_MODEL_AGENT: "claude-sonnet-4-5"
       ANTHROPIC_MODEL_KINGLY: "claude-sonnet-4-5"

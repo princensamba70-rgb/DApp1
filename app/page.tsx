@@ -1,54 +1,203 @@
+// Page d'accueil — refonte professionnelle : fond blanc pur, texte noir,
+// cartes blanches à bordures discrètes, responsive, accessible au clavier.
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { resolveProvider } from "@/lib/agent/provider";
+
+const EXAMPLES = [
+  "Corrige le build Docker de mon projet Node.js",
+  "Analyse ce dépôt et propose un plan de refactorisation",
+  "Rédige un rapport technique à partir de mes journaux d'erreurs",
+  "Audite la sécurité de mes routes API",
+];
+
+const FEATURES = [
+  {
+    icon: "⌘",
+    title: "Développement autonome",
+    text: "Explore un dépôt, planifie, modifie les fichiers, exécute les tests, lit ses erreurs et se corrige — avec journal d'exécution complet.",
+  },
+  {
+    icon: "⎇",
+    title: "Orchestration multi-agents",
+    text: "Mode KINGLY 1 : décomposition en sous-tâches, chercheur, architecte, exécutant et vérificateur indépendant qui conteste les résultats.",
+  },
+  {
+    icon: "≋",
+    title: "Streaming temps réel",
+    text: "Plan vivant, appels d'outils avec codes de sortie, raisonnement et réponse diffusés en continu (SSE), interruption propre à tout moment.",
+  },
+  {
+    icon: "⛁",
+    title: "Historique persistant",
+    text: "Sessions multiples : création, renommage, suppression, export Markdown. Chaque run est rejouable avec son plan et ses outils.",
+  },
+  {
+    icon: "⚿",
+    title: "Confidentialité par défaut",
+    text: "Moteur local par défaut : aucune clé requise, aucune donnée envoyée à un tiers. Fournisseur interchangeable par simple configuration.",
+  },
+  {
+    icon: "♔",
+    title: "Administration complète",
+    text: "Gestion des utilisateurs, rôles, quotas journaliers, statistiques d'usage et journal d'audit — réservée au rôle ADMIN.",
+  },
+];
 
 export default async function LandingPage() {
   const session = await auth();
   if (session?.user?.id) redirect("/c");
+  const engine = resolveProvider();
 
   return (
-    <main className="flex-1 flex flex-col items-center justify-center px-6">
-      <div className="max-w-2xl w-full text-center space-y-8">
-        <div className="font-mono">
-          <div className="text-xs text-fg-2 mb-3">~/cortexp $</div>
-          <h1 className="text-5xl font-bold tracking-tight text-fg-0">
+    <div className="theme-light flex-1 flex flex-col bg-white text-[#111111] font-sans">
+      {/* 1-3. Barre de navigation : logo + connexion / inscription */}
+      <header className="border-b border-neutral-200">
+        <nav
+          aria-label="Navigation principale"
+          className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between"
+        >
+          <Link href="/" className="font-mono text-lg font-bold tracking-tight">
             CORTE<span className="text-accent">XP</span>
-          </h1>
-          <p className="mt-4 text-fg-1 text-lg">
-            Donne un objectif. Récupère un livrable.
-          </p>
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-3 text-left font-mono text-sm">
-          <div className="border border-line rounded-lg bg-bg-1 p-4">
-            <div className="text-accent font-semibold">◇ MODE AGENT</div>
-            <p className="text-fg-1 mt-2 text-xs leading-relaxed">
-              Agent autonome : planifie, exécute dans une sandbox, lit ses
-              erreurs, se corrige et livre un résultat tangible.
-            </p>
-          </div>
-          <div className="border border-line rounded-lg bg-bg-1 p-4">
-            <div className="text-king font-semibold">♛ MODE KINGLY 1</div>
-            <p className="text-fg-1 mt-2 text-xs leading-relaxed">
-              Sur-ensemble strict : orchestration multi-agents, vérificateur
-              indépendant, deep research citée, audit complet.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-center gap-3">
-          <Link
-            href="/login"
-            className="px-6 py-2.5 rounded-lg bg-accent text-bg-0 font-mono font-semibold text-sm hover:opacity-90 transition-opacity"
-          >
-            Se connecter →
           </Link>
-        </div>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/login"
+              className="px-4 py-2 text-sm font-medium text-neutral-700 rounded-lg hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-400 transition-colors"
+            >
+              Se connecter
+            </Link>
+            <Link
+              href="/login?tab=register"
+              className="px-4 py-2 text-sm font-medium bg-[#111111] text-white rounded-lg hover:bg-neutral-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-400 transition-colors"
+            >
+              Créer un compte
+            </Link>
+          </div>
+        </nav>
+      </header>
 
-        <p className="text-fg-2 text-xs font-mono">
-          3 modes de connexion : identifiants · Google · GitHub
-        </p>
-      </div>
-    </main>
+      <main className="flex-1">
+        {/* 4. Section principale */}
+        <section className="mx-auto max-w-3xl px-6 pt-20 pb-12 text-center">
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight leading-tight">
+            Un agent IA qui exécute
+            <br className="hidden sm:block" /> vos tâches de bout en bout
+          </h1>
+          <p className="mt-5 text-lg text-neutral-600 max-w-xl mx-auto">
+            Développement logiciel, analyse de code, rapports techniques :
+            CORTEXP planifie, agit, vérifie et livre — en toute autonomie.
+          </p>
+
+          {/* 5. Champ de saisie central (redirige vers la connexion) */}
+          <form action="/login" method="GET" className="mt-10 max-w-xl mx-auto">
+            <div className="flex items-center gap-2 rounded-xl border border-neutral-300 bg-white p-2 shadow-sm focus-within:border-neutral-500 transition-colors">
+              <span aria-hidden className="pl-2 font-mono text-sm text-neutral-400">$</span>
+              <input
+                type="text"
+                name="objective"
+                placeholder="Décrivez votre objectif…"
+                aria-label="Décrivez votre objectif"
+                className="flex-1 bg-transparent text-sm text-[#111111] placeholder:text-neutral-400 focus:outline-none px-1 py-2"
+              />
+              <button
+                type="submit"
+                className="shrink-0 px-4 py-2 text-sm font-medium bg-[#111111] text-white rounded-lg hover:bg-neutral-700 transition-colors"
+              >
+                Commencer
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-neutral-500">
+              La connexion est requise pour lancer un agent.
+            </p>
+          </form>
+
+          {/* 6. Exemples de tâches */}
+          <ul className="mt-6 flex flex-wrap justify-center gap-2" aria-label="Exemples de tâches">
+            {EXAMPLES.map((e) => (
+              <li key={e}>
+                <Link
+                  href="/login"
+                  className="inline-block text-xs text-neutral-600 border border-neutral-200 rounded-full px-3 py-1.5 hover:border-neutral-400 hover:text-[#111111] transition-colors"
+                >
+                  {e}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* 7. Les deux modes de travail */}
+        <section className="mx-auto max-w-4xl px-6 py-10">
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+              <div className="font-mono text-sm font-semibold text-accent">◇ MODE AGENT</div>
+              <p className="mt-2 text-sm text-neutral-600 leading-relaxed">
+                Agent autonome : planifie, exécute dans une sandbox, lit ses
+                erreurs, se corrige et livre un résultat tangible.
+              </p>
+            </div>
+            <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+              <div className="font-mono text-sm font-semibold text-king">♛ MODE KINGLY 1</div>
+              <p className="mt-2 text-sm text-neutral-600 leading-relaxed">
+                Sur-ensemble strict : orchestration multi-agents, vérificateur
+                indépendant, recherche approfondie citée, audit complet.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* 8. Fonctionnalités */}
+        <section className="border-t border-neutral-100 bg-neutral-50/50">
+          <div className="mx-auto max-w-6xl px-6 py-16">
+            <h2 className="text-2xl font-bold tracking-tight text-center">
+              Conçu pour le travail sérieux
+            </h2>
+            <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {FEATURES.map((f) => (
+                <div key={f.title} className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+                  <div aria-hidden className="text-xl text-neutral-400">{f.icon}</div>
+                  <h3 className="mt-3 font-semibold text-[#111111]">{f.title}</h3>
+                  <p className="mt-2 text-sm text-neutral-600 leading-relaxed">{f.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* 9. Statut du moteur IA */}
+        <section className="mx-auto max-w-6xl px-6 py-10">
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-sm text-neutral-600">
+            <span className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-1.5">
+              <span aria-hidden className="h-2 w-2 rounded-full bg-ok" />
+              Moteur IA : {engine.label}
+            </span>
+            <span className="font-mono text-xs text-neutral-500">{engine.model}</span>
+            {!engine.external && (
+              <span className="text-xs text-neutral-500">
+                — aucune donnée envoyée à un service tiers
+              </span>
+            )}
+          </div>
+        </section>
+      </main>
+
+      {/* 10. Pied de page */}
+      <footer className="border-t border-neutral-200">
+        <div className="mx-auto max-w-6xl px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-neutral-500">
+          <div className="font-mono">
+            CORTE<span className="text-accent">XP</span> — agent autonome
+          </div>
+          <div className="flex items-center gap-5">
+            <Link href="/login" className="hover:text-[#111111] transition-colors">Connexion</Link>
+            <Link href="/login?tab=register" className="hover:text-[#111111] transition-colors">Inscription</Link>
+            <a href="https://github.com/princensamba70-rgb/DApp1" className="hover:text-[#111111] transition-colors">
+              Code source
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }

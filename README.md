@@ -144,6 +144,54 @@ prod), `ADMIN_USERNAME` / `ADMIN_PASSWORD`, clés OAuth, `DEMO_MODE`,
 - Rate limiting inscription (5 / 10 min / IP) ; garde-fous admin (impossible de
   se rétrograder / supprimer soi-même) ; journal d'audit sans secrets.
 
+### 🧠 Moteur IA : indépendant d'Anthropic
+
+CORTEXP fonctionne **sans aucune clé API** grâce à une couche d'abstraction
+(`lib/agent/provider.ts`). Le fournisseur se change par configuration, jamais
+par le code :
+
+| `AI_PROVIDER` | Comportement | Données sortantes |
+|---|---|---|
+| `local` *(défaut)* | Moteur local déterministe intégré — zéro clé, zéro réseau | Aucune |
+| `openai` | Tout endpoint **compatible OpenAI** : Ollama (`http://localhost:11434/v1`), LM Studio (`…:1234/v1`), vLLM, llama.cpp server | Aucune si le serveur est local |
+| `anthropic` | Strictement **opt-in** (`AI_PROVIDER=anthropic` + clé) — jamais requis | Oui (choix explicite) |
+
+`DEMO_MODE=true` force le moteur local. Statut public (sans secret) :
+`GET /api/engine/status`. En Docker, un modèle Ollama sur l'hôte s'atteint via
+`OPENAI_BASE_URL=http://host.docker.internal:11434/v1`.
+
+Exemple 100 % local avec Ollama :
+```bash
+ollama pull llama3.1        # sur la machine hôte
+# .env : DEMO_MODE=false  AI_PROVIDER=openai
+#        OPENAI_BASE_URL=http://localhost:11434/v1  OPENAI_MODEL=llama3.1
+```
+
+### 🔑 OAuth Google & GitHub : configuration des consoles
+
+Les boutons apparaissent automatiquement dès que les clés sont renseignées
+(sinon ils sont masqués — aucun faux bouton). Les secrets restent côté
+serveur : jamais dans le frontend, jamais commités.
+
+**Google** — [console.cloud.google.com](https://console.cloud.google.com) →
+« APIs & Services → Credentials → Create OAuth client ID » (type *Web application*) :
+- Origine autorisée : `http://localhost:3000` (dév) / `https://votre-domaine` (prod)
+- URI de redirection : `http://localhost:3000/api/auth/callback/google`
+  (prod : `https://votre-domaine/api/auth/callback/google`)
+- Copier `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` dans `.env`.
+
+**GitHub** — [github.com/settings/developers](https://github.com/settings/developers) →
+« New OAuth App » :
+- Homepage URL : `http://localhost:3000` (dév) / `https://votre-domaine` (prod)
+- Authorization callback URL : `http://localhost:3000/api/auth/callback/github`
+  (prod : `https://votre-domaine/api/auth/callback/github`)
+- Copier `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` dans `.env`.
+
+En production, définissez aussi `AUTH_URL=https://votre-domaine` et un
+`AUTH_SECRET` fort (`openssl rand -base64 32`). Protections intégrées par
+Auth.js : paramètre `state`, cookies HttpOnly/SameSite (Secure en prod),
+échange du code côté serveur, CSRF sur les formulaires.
+
 ### 🔧 Dépannage : `gyp ERR! not ok` sur better-sqlite3 pendant `docker compose build`
 
 Cause racine (observée dans les journaux `npm ci`) :

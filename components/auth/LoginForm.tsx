@@ -11,7 +11,9 @@ import { Suspense } from "react";
 function LoginFormInner({ googleEnabled, githubEnabled }: { googleEnabled: boolean; githubEnabled: boolean }) {
   const router = useRouter();
   const params = useSearchParams();
-  const [tab, setTab] = useState<"login" | "register">("login");
+  const [tab, setTab] = useState<"login" | "register">(
+    params.get("tab") === "register" ? "register" : "login"
+  );
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");

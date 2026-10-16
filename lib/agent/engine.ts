@@ -6,7 +6,7 @@
 //   modèle réel (streaming), le reste du contrat d'événements est identique.
 import type { AgentEvent, PlanStep, RunMeta, ToolCallInfo } from "./types";
 import { modelFor, systemPromptFor } from "./prompts";
-import { streamAnthropic } from "./anthropic";
+import { resolveProvider, streamCompletion } from "./provider";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const estimateTokens = (s: string) => Math.max(1, Math.round(s.length / 4));
@@ -224,17 +224,18 @@ export async function* runAgent(
     yield* setStep("s5", "in_progress");
   }
 
-  // 5) Réponse finale — streaming (réel si clé API, sinon démo)
+  // 5) Réponse finale — streaming via la couche d'abstraction des fournisseurs
+  //    ("local" par défaut : zéro appel externe ; "openai" : modèle local
+  //    compatible OpenAI type Ollama/LM Studio ; "anthropic" : opt-in strict).
   let final = "";
-  const useReal = process.env.DEMO_MODE !== "true" && Boolean(process.env.ANTHROPIC_API_KEY);
-  if (useReal) {
+  if (resolveProvider().provider !== "local") {
     try {
-      for await (const chunk of streamAnthropic(mode, objective, history)) {
+      for await (const chunk of streamCompletion(mode, objective, history)) {
         final += chunk;
         yield { t: "content_delta", text: chunk };
       }
     } catch {
-      final = "";
+      final = ""; // repli automatique sur le moteur local déterministe
     }
   }
   if (!final) {

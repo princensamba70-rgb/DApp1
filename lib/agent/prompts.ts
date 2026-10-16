@@ -42,10 +42,21 @@ export function systemPromptFor(mode: "agent" | "kingly"): string {
 }
 
 export function modelFor(mode: "agent" | "kingly"): string {
-  if (process.env.DEMO_MODE === "true" || !process.env.ANTHROPIC_API_KEY) {
+  const provider = (process.env.AI_PROVIDER ?? "local").trim().toLowerCase();
+  if (process.env.DEMO_MODE === "true" || provider === "local") {
     return mode === "kingly" ? "cortexp-demo-kingly" : "cortexp-demo-agent";
   }
-  return mode === "kingly"
-    ? process.env.ANTHROPIC_MODEL_KINGLY || "claude-sonnet-4-5"
-    : process.env.ANTHROPIC_MODEL_AGENT || "claude-sonnet-4-5";
+  if (provider === "openai" && process.env.OPENAI_BASE_URL) {
+    return (
+      (mode === "kingly" ? process.env.OPENAI_MODEL_KINGLY : process.env.OPENAI_MODEL_AGENT) ||
+      process.env.OPENAI_MODEL ||
+      "llama3.1"
+    );
+  }
+  if (provider === "anthropic" && process.env.ANTHROPIC_API_KEY) {
+    return mode === "kingly"
+      ? process.env.ANTHROPIC_MODEL_KINGLY || "claude-sonnet-4-5"
+      : process.env.ANTHROPIC_MODEL_AGENT || "claude-sonnet-4-5";
+  }
+  return mode === "kingly" ? "cortexp-demo-kingly" : "cortexp-demo-agent";
 }

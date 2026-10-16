@@ -37,6 +37,20 @@
     Roboto, sans-serif;
 }
 
+/* ── Thème clair (page d'accueil + écrans d'authentification) ──
+   Surcharge locale des jetons : les composants existants (formulaires,
+   boutons, bordures) basculent en blanc/noir sans être réécrits. */
+.theme-light {
+  --bg-0: #ffffff;
+  --bg-1: #ffffff;
+  --bg-2: #f6f6f5;
+  --fg-0: #111111;
+  --fg-1: #3f3f3c;
+  --fg-2: #71716c;
+  --line: #e7e5e4;
+  color-scheme: light;
+}
+
 html,
 body {
   height: 100%;
