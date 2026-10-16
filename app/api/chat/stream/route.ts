@@ -75,7 +75,7 @@ export async function POST(req: Request) {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
       let finalContent = "";
       try {
-        const gen = runAgent(run.id, mode, content, history);
+        const gen = runAgent(run.id, mode, content, history, sessionId);
         for (;;) {
           const { value, done } = await gen.next();
           if (done) {

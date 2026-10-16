@@ -9,7 +9,8 @@
 import type { AgentEvent, PlanStep, RunMeta, ToolCallInfo } from "./types";
 import { modelFor, systemPromptFor } from "./prompts";
 import { resolveProvider, streamCompletion } from "./provider";
-import { detectTasks, runTask, taskLabel, type SkillOutcome, type Task } from "./skills";
+import { detectTasks, runTask, taskLabel, type SkillOutcome, type Task, type TaskCtx } from "./skills";
+import path from "node:path";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export const estimateTokens = (s: string) => Math.max(1, Math.round(s.length / 4));
@@ -22,6 +23,8 @@ const TOOL_BY_KIND: Record<Task["kind"], string> = {
   math: "calc.evaluate",
   web: "web.fetch_sources",
   text: "text.extractive_summary",
+  project: "project.generate",
+  research: "web.research",
 };
 
 const ROLE_BY_KIND: Record<Task["kind"], string> = {
@@ -32,6 +35,8 @@ const ROLE_BY_KIND: Record<Task["kind"], string> = {
   math: "data-analyst",
   web: "researcher",
   text: "doc-analyst",
+  project: "code-builder",
+  research: "researcher",
 };
 
 function shortObjective(objective: string): string {
@@ -43,8 +48,12 @@ export async function* runAgent(
   runId: string,
   mode: "agent" | "kingly",
   objective: string,
-  history: { role: string; content: string }[]
+  history: { role: string; content: string }[],
+  sessionId?: string
 ): AsyncGenerator<AgentEvent, RunMeta> {
+  const ctx: TaskCtx = sessionId
+    ? { sessionId, workspaceDir: path.join(process.cwd(), "data", "workspaces", sessionId) }
+    : {};
   const model = modelFor(mode);
   const meta: RunMeta = {
     mode,
@@ -112,7 +121,7 @@ export async function* runAgent(
     const callId = `${runId}-c${i}`;
     const t0 = Date.now();
     yield { t: "tool_start", call: { callId, name: TOOL_BY_KIND[task.kind], summary: taskLabel(task) } };
-    const outcome = await runTask(task);
+    const outcome = await runTask(task, ctx);
     const durationMs = Date.now() - t0;
     const call: ToolCallInfo = {
       callId,
@@ -138,11 +147,11 @@ export async function* runAgent(
   if (mode === "kingly") {
     yield* setStep("verify", "in_progress");
     for (const { task, outcome } of results) {
-      if (task.kind === "web") {
+      if (task.kind === "web" || task.kind === "research") {
         verifications.push(`- \`${outcome.name}\` : non rejouable hors ligne (source réseau) — citations conservées telles quelles.`);
         continue;
       }
-      const second = await runTask(task);
+      const second = await runTask(task, ctx);
       const same = second.output === outcome.output && second.exitCode === outcome.exitCode;
       verifications.push(
         same

@@ -163,7 +163,7 @@ Le moteur local **exécute réellement les travaux** (rien n'est simulé) :
 | `AI_PROVIDER` | Comportement | Données sortantes |
 |---|---|---|
 | `local` *(défaut)* | Moteur local à **exécution réelle** (ci-dessus) — zéro clé, zéro réseau | Aucune |
-| `openai` | Tout endpoint **compatible OpenAI** : Ollama (`http://localhost:11434/v1`), LM Studio (`…:1234/v1`), vLLM, llama.cpp server | Aucune si le serveur est local |
+| `openai` | Tout endpoint **compatible OpenAI** — **local** : Ollama (`http://localhost:11434/v1`), LM Studio (`…:1234/v1`), vLLM, llama.cpp · ou **EN LIGNE** (pas de matériel requis) : OpenRouter (`https://openrouter.ai/api/v1`), Groq (`https://api.groq.com/openai/v1`), Together, Mistral… avec votre clé | Aucune si local ; oui si service en ligne (votre choix) |
 | `anthropic` | Strictement **opt-in** (`AI_PROVIDER=anthropic` + clé) — jamais requis | Oui (choix explicite) |
 
 `DEMO_MODE=true` force le moteur local. Statut public (sans secret) :
@@ -176,6 +176,17 @@ ollama pull llama3.1        # sur la machine hôte
 # .env : DEMO_MODE=false  AI_PROVIDER=openai
 #        OPENAI_BASE_URL=http://localhost:11434/v1  OPENAI_MODEL=llama3.1
 ```
+
+**Pas de machine pour un modèle local ?** Branchez un service **en ligne**
+compatible OpenAI (fonctionne tel quel dans Docker, le moteur local reste le
+filet de sécurité) :
+```bash
+# .env : DEMO_MODE=false  AI_PROVIDER=openai
+#        OPENAI_BASE_URL=https://openrouter.ai/api/v1   # ou https://api.groq.com/openai/v1
+#        OPENAI_API_KEY=<votre clé>   OPENAI_MODEL=<modèle du catalogue>
+```
+Le moteur local continue d'exécuter réellement code, données, projets et
+recherche web ; le modèle en ligne enrichit la rédaction des réponses.
 
 ### 🔑 OAuth Google & GitHub : configuration des consoles
 
