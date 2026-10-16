@@ -2,7 +2,7 @@
 // cartes blanches à bordures discrètes, responsive, accessible au clavier.
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { currentUser } from "@/lib/auth";
 import { resolveProvider } from "@/lib/agent/provider";
 
 const EXAMPLES = [
@@ -46,8 +46,11 @@ const FEATURES = [
 ];
 
 export default async function LandingPage() {
-  const session = await auth();
-  if (session?.user?.id) redirect("/c");
+  // currentUser() (et non auth()) : vérifie le compte en base. Un jeton
+  // orphelin (utilisateur supprimé) ne provoque plus de boucle de
+  // redirection entre / et /c.
+  const user = await currentUser();
+  if (user) redirect("/c");
   const engine = resolveProvider();
 
   return (

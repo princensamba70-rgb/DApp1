@@ -100,6 +100,47 @@ const admin = client();
   ok("route protégée sans session → 401", r.status === 401, `(${r.status})`);
 }
 
+// 2-bis) Correctif anti-boucle de redirection — utilisateur supprimé en base
+// alors que son cookie de session reste valide : / ne doit plus boucler
+// entre /login et /c.
+console.log("— Anti-boucle de redirection (session orpheline)");
+{
+  const U3 = "testeur_boucle";
+  const U3PASS = "boucle-Pass-" + Math.random().toString(36).slice(2, 8);
+  const db3 = new Database(DB_PATH);
+  db3.prepare("DELETE FROM User WHERE username = ?").run(U3);
+  db3.prepare(
+    `INSERT INTO User (id, username, name, passwordHash, role, isActive, dailyMessageLimit, createdAt)
+     VALUES (?, ?, ?, ?, 'USER', 1, 50, datetime('now'))`
+  ).run("boucle" + Date.now().toString(36), U3, "Testeur Boucle", bcrypt.hashSync(U3PASS, 10));
+  db3.close();
+
+  const orphelin = client();
+  ok("connexion de l'utilisateur éphémère", await orphelin.login(U3, U3PASS));
+
+  // Le compte disparaît : le jeton JWT devient orphelin.
+  const db4 = new Database(DB_PATH);
+  db4.prepare("DELETE FROM User WHERE username = ?").run(U3);
+  db4.close();
+
+  const home = await orphelin.req("/");
+  ok("/ ne redirige plus vers /c (200)", home.status === 200,
+    `(status=${home.status} loc=${home.headers.get("location")})`);
+  const loginPage = await orphelin.req("/login");
+  ok("/login ne redirige plus vers /c (200)", loginPage.status === 200,
+    `(status=${loginPage.status} loc=${loginPage.headers.get("location")})`);
+  const consolePage = await orphelin.req("/c");
+  ok("/c renvoie vers /login (307)", consolePage.status === 307 &&
+    (consolePage.headers.get("location") ?? "").includes("/login"),
+    `(status=${consolePage.status} loc=${consolePage.headers.get("location")})`);
+  const back = await orphelin.req("/login");
+  ok("/login après /c reste en 200 (fin de boucle)", back.status === 200, `(status=${back.status})`);
+  const sess = await (await orphelin.req("/api/auth/session")).json();
+  ok("session invalidée (user.id vide)", !sess?.user?.id, JSON.stringify(sess?.user ?? {}));
+  const proj = await orphelin.req("/api/projects");
+  ok("API protégée → 401", proj.status === 401, `(${proj.status})`);
+}
+
 // 3) Workspace — génération d'un projet réel
 console.log("— Workspace (génération, fichiers, aperçu)");
 let sid = "";
