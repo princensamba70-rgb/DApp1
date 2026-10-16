@@ -1,9 +1,10 @@
 // Liste des fichiers générés par l'agent pour une session (propriétaire uniquement).
+// Parcours récursif (sous-dossiers inclus) avec politique d'exclusion :
+// .git, node_modules, caches et fichiers .env n'apparaissent jamais.
 import { NextResponse } from "next/server";
-import fs from "node:fs";
-import path from "node:path";
 import { prisma } from "@/lib/db";
 import { currentUser } from "@/lib/auth";
+import { workspaceDir, listWorkspaceFiles } from "@/lib/workspace";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -15,12 +16,5 @@ export async function GET(_req: Request, ctx: Ctx) {
   const session = await prisma.chatSession.findFirst({ where: { id, userId: user.id } });
   if (!session) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
 
-  const dir = path.join(process.cwd(), "data", "workspaces", id);
-  if (!fs.existsSync(dir)) return NextResponse.json({ files: [] });
-
-  const files = fs
-    .readdirSync(dir)
-    .filter((f) => /^[\w.-]+$/.test(f) && fs.statSync(path.join(dir, f)).isFile())
-    .map((f) => ({ name: f, size: fs.statSync(path.join(dir, f)).size }));
-  return NextResponse.json({ files });
+  return NextResponse.json({ files: listWorkspaceFiles(workspaceDir(id)) });
 }
