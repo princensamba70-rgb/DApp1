@@ -1,0 +1,51 @@
+# CORTEXP — docker compose up --build  →  http://localhost:3000
+services:
+  web:
+    build: .
+    container_name: cortexp-web
+    ports:
+      - "3000:3000"
+    environment:
+      # Base SQLite persistée dans le volume ci-dessous
+      DATABASE_URL: "file:/app/data/cortexp.db"
+      AUTH_URL: "http://localhost:3000"
+      # ⚠ À CHANGER en production : openssl rand -base64 32
+      AUTH_SECRET: "cortexp-docker-secret-change-me-in-production"
+      AUTH_TRUST_HOST: "true"
+      # Compte administrateur (mot de passe haché au démarrage, jamais exposé)
+      ADMIN_USERNAME: "adminnp"
+      ADMIN_PASSWORD: "2026@admin@prince"
+      ADMIN_EMAIL: "admin@cortexp.local"
+      # Mode 2 — Google OAuth (renseigner pour activer le bouton)
+      GOOGLE_CLIENT_ID: ""
+      GOOGLE_CLIENT_SECRET: ""
+      # Mode 3 — GitHub OAuth (renseigner pour activer le bouton)
+      GITHUB_CLIENT_ID: ""
+      GITHUB_CLIENT_SECRET: ""
+      # ── Moteur IA (indépendant d'Anthropic) ──
+      # AI_PROVIDER=local (défaut) : moteur à EXÉCUTION RÉELLE (VM JS isolée,
+      #   stats CSV, résumé extractif, lecture web citée) — zéro clé.
+      # AI_PROVIDER=openai : modèle local compatible OpenAI
+      #   (Ollama sur l'hôte : OPENAI_BASE_URL=http://host.docker.internal:11434/v1)
+      # AI_PROVIDER=anthropic : strictement optionnel, jamais requis.
+      DEMO_MODE: "false"
+      AI_PROVIDER: "local"
+      OPENAI_BASE_URL: ""
+      OPENAI_API_KEY: ""
+      OPENAI_MODEL: ""
+      ANTHROPIC_API_KEY: ""
+      ANTHROPIC_MODEL_AGENT: "claude-sonnet-4-5"
+      ANTHROPIC_MODEL_KINGLY: "claude-sonnet-4-5"
+      DEFAULT_DAILY_MESSAGE_LIMIT: "50"
+    volumes:
+      - cortexp-data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/login').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+volumes:
+  cortexp-data:
